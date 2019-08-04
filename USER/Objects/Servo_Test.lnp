@@ -11,6 +11,7 @@
 ".\objects\oled.o"
 ".\objects\ads1115.o"
 ".\objects\fdc2214.o"
+".\objects\servo.o"
 ".\objects\delay.o"
 ".\objects\stm32f10x_it.o"
 ".\objects\sys.o"

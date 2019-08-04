@@ -4,6 +4,7 @@
 #include "led.h"
 #include "delay.h"
 #include "usart.h"
+#include "servo.h"
 
 int main(void)
 {
@@ -15,6 +16,22 @@ int main(void)
     // 基本外设初始化
 
     LED_Init();
+
+    Servo_Init(0.0, 180);
+
+    for (;;)
+    {
+        for (size_t i = 0; i < 180; i++)
+        {
+            Servo_To(i);
+            delay(10);
+        }
+        for (size_t i = 180; i > 0; i--)
+        {
+            Servo_To(i);
+            delay(10);
+        }
+    }
 
     while (1)
     {

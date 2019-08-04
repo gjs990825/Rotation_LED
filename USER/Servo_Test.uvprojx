@@ -338,7 +338,7 @@
               <MiscControls>--no_multibyte_chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\HARDWARE\MOTOR;..\APP\my_lib;..\HARDWARE\MPU6050;..\HARDWARE\IIC;..\APP\PID;..\HARDWARE\KEY;..\HARDWARE\OLED;..\APP\GUI;..\HARDWARE\ADS1115;..\HARDWARE\FDC2214;..\SYSTEM\TIMERSTAMP</IncludePath>
+              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\HARDWARE\MOTOR;..\APP\my_lib;..\HARDWARE\MPU6050;..\HARDWARE\IIC;..\APP\PID;..\HARDWARE\KEY;..\HARDWARE\OLED;..\APP\GUI;..\HARDWARE\ADS1115;..\HARDWARE\FDC2214;..\SYSTEM\TIMERSTAMP;..\HARDWARE\SERVO</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -451,6 +451,11 @@
               <FileName>FDC2214.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\FDC2214\FDC2214.c</FilePath>
+            </File>
+            <File>
+              <FileName>servo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\SERVO\servo.c</FilePath>
             </File>
           </Files>
         </Group>
