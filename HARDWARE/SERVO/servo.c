@@ -19,7 +19,7 @@ void Servo_Init(float initAngle, float upperLimit)
     angleUpperLimit = upperLimit;
     angleLowerLimit = 0; // 角度下限默认0
 
-    // 一个毫秒需要的周期
+    // f = T / 1 = 20 / 1000 = 50
     uint32_t total = SystemCoreClock / 50;
 
     uint16_t servoArr = total / 1000;

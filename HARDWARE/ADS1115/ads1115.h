@@ -95,7 +95,8 @@ typedef enum
 } adsGain_t;
 
 
-void ADS1115_Init(void);
+// 不需要初始化，直接调用
+// void ADS1115_Init(void);
 
 int ADS1115_Write(uint8_t SlaveAddress, uint8_t address, uint16_t data);
 uint16_t ADS1115_Read(uint8_t SlaveAddress, uint8_t address);

@@ -53,16 +53,6 @@ uint16_t ADS1115_Read(uint8_t SlaveAddress, uint8_t address)
     return REG_data;
 }
 
-void ADS1115_Init(void)
-{
-    uint16_t regVal = ADS1115_Read(ADS1015_ADDRESS, ADS1015_REG_POINTER_CONFIG);
-    regVal &= 0xF1FF;
-
-    regVal = 0X8183;
-
-    ADS1115_Write(ADS1015_ADDRESS, ADS1015_REG_POINTER_CONFIG, regVal);
-}
-
 /**************************************************************************/
 /*!
     @brief  Gets a single-ended ADC reading from the specified channel
