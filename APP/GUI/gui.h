@@ -2,6 +2,7 @@
 #define _GUI_H_
 
 #include "sys.h"
+#include "oled.h"
 
 #define flashInterval 300
 
@@ -12,7 +13,7 @@ typedef struct GUI_Compoment
     bool currentHighlight;    // 当前高亮状态
     bool needBlink;           // 需要闪烁
     uint8_t *text;            // 文字内容
-    uint8_t size;             // 文字大小
+    fontInfo_t *font;          // 字体
     uint32_t lastTimeRefresh; // 上次刷新时间
     uint16_t refreshInterval; // 刷新间隔
     uint32_t lastTimeFlash;   // 上次闪烁时间

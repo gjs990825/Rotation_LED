@@ -1,20 +1,120 @@
 #include "oled.h"
 #include "delay.h"
 #include "font.h"
+
+#if __OLED_SPI__
+
+#include "spi.h"
+
+#define OLED_PIN_RES PBout(12)
+#define OLED_PIN_DC PBout(11)
+#define OLED_PIN_CS PBout(10)
+
+void __OLED_Delay(void)
+{
+	uint16_t i = 1000;
+	while (i--)
+		;
+}
+
+void OLED_SPIWrite(uint8_t data)
+{
+	uint8_t retry = 0;
+
+	while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET)
+	{
+		retry++;
+		if (retry > 0xFE)
+			return;
+	}
+
+	SPI_I2S_SendData(SPI2, data);
+
+	// 按情况增加延时
+	__OLED_Delay();
+}
+
+#else
+
 #include "iic.h"
+
+#endif
+
+fontInfo_t Font_6x8 = {
+	.data = (uint8_t *)F6X8,
+	.xSize = 6,
+	.ySize = 8,
+};
+
+fontInfo_t Font_6x12 = {
+	.data = (uint8_t *)F6X12,
+	.xSize = 6,
+	.ySize = 12,
+};
+
+fontInfo_t Font_8x16 = {
+	.data = (uint8_t *)F8X16,
+	.xSize = 8,
+	.ySize = 16,
+};
+
+fontInfo_t Font_12x24 = {
+	.data = (uint8_t *)F12X24,
+	.xSize = 12,
+	.ySize = 24,
+};
 
 void OLED_WriteCmd(uint8_t cmd) //写命令
 {
+#if __OLED_SPI__
+
+	OLED_PIN_DC = 0;
+	OLED_PIN_CS = 0;
+	OLED_SPIWrite(cmd);
+	OLED_PIN_DC = 1;
+	OLED_PIN_CS = 1;
+
+#else
+
 	I2C_Single_Write(OLE_ADRESS, 0x00, cmd);
+
+#endif
 }
 
 void OLED_WriteDat(uint8_t dat)
 {
+#if __OLED_SPI__
+
+	OLED_PIN_DC = 1;
+	OLED_PIN_CS = 0;
+	OLED_SPIWrite(dat);
+	OLED_PIN_DC = 1;
+	OLED_PIN_CS = 1;
+
+#else
+
 	I2C_Single_Write(OLE_ADRESS, 0x40, dat);
+
+#endif
 }
 
 void OLED_Init(void)
 {
+#if __OLED_SPI__
+
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_11 | GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	GPIO_SetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_11 | GPIO_Pin_10);
+
+#endif
+
 	delay_ms(100); //这里的延时很重要
 
 	OLED_WriteCmd(0xAE); //display off
@@ -45,6 +145,8 @@ void OLED_Init(void)
 	OLED_WriteCmd(0x8d); //--set DC-DC enable
 	OLED_WriteCmd(0x14); //
 	OLED_WriteCmd(0xaf); //--turn on oled panel
+
+	OLED_CLS();
 }
 
 void OLED_SetPos(unsigned char x, unsigned char y) //设置起始点坐标
@@ -89,138 +191,34 @@ void OLED_OFF(void)
 	OLED_WriteCmd(0XAE); //OLED休眠
 }
 
-void OLED_ShowStr(uint8_t x, uint8_t y, uint8_t ch[], uint8_t TextSize, bool isHighlight)
+void OLED_ShowSingleChar(uint8_t x, uint8_t y, uint8_t ch, fontInfo_t font, uint8_t yByteSize, bool isHightlight)
 {
-	unsigned char c = 0, i = 0, j = 0;
-	switch (TextSize)
+	ch -= 32;
+
+	for (uint8_t i = 0; i < yByteSize; i++)
 	{
-	case 1:
-	{
-		while (ch[j] != '\0')
+		OLED_SetPos(x, y + i);
+		for (uint8_t j = 0; j < font.xSize; j++)
 		{
-			c = ch[j] - 32;
-			if (x > 126)
-			{
-				x = 0;
-				y++;
-			}
-			OLED_SetPos(x, y);
-			if (isHighlight)
-			{
-				for (i = 0; i < 6; i++)
-					OLED_WriteDat(~F6x8[c][i]);
-			}
-			else
-			{
-				for (i = 0; i < 6; i++)
-					OLED_WriteDat(F6x8[c][i]);
-			}
-
-			x += 6;
-			j++;
+			OLED_WriteDat(font.data[(ch * font.xSize + j) * yByteSize + i]);
 		}
-	}
-	break;
-	case 2:
-	{
-		while (ch[j] != '\0')
-		{
-			c = ch[j] - 32;
-			if (x > 120)
-			{
-				x = 0;
-				y++;
-			}
-
-			if (isHighlight)
-			{
-				OLED_SetPos(x, y);
-				for (i = 0; i < 8; i++)
-					OLED_WriteDat(~F8X16[c * 16 + i]);
-				OLED_SetPos(x, y + 1);
-				for (i = 0; i < 8; i++)
-					OLED_WriteDat(~F8X16[c * 16 + i + 8]);
-			}
-			else
-			{
-				OLED_SetPos(x, y);
-				for (i = 0; i < 8; i++)
-					OLED_WriteDat(F8X16[c * 16 + i]);
-				OLED_SetPos(x, y + 1);
-				for (i = 0; i < 8; i++)
-					OLED_WriteDat(F8X16[c * 16 + i + 8]);
-			}
-
-			x += 8;
-			j++;
-		}
-	}
-	break;
 	}
 }
 
-// void OLED_ShowStr(uint8_t x, uint8_t y, uint8_t ch[], uint8_t TextSize)
-// {
-// 	unsigned char c = 0, i = 0, j = 0;
-// 	switch (TextSize)
-// 	{
-// 	case 1:
-// 	{
-// 		while (ch[j] != '\0')
-// 		{
-// 			c = ch[j] - 32;
-// 			if (x > 126)
-// 			{
-// 				x = 0;
-// 				y++;
-// 			}
-// 			OLED_SetPos(x, y);
-// 			for (i = 0; i < 6; i++)
-// 				OLED_WriteDat(F6x8[c][i]);
-// 			x += 6;
-// 			j++;
-// 		}
-// 	}
-// 	break;
-// 	case 2:
-// 	{
-// 		while (ch[j] != '\0')
-// 		{
-// 			c = ch[j] - 32;
-// 			if (x > 120)
-// 			{
-// 				x = 0;
-// 				y++;
-// 			}
-// 			OLED_SetPos(x, y);
-// 			for (i = 0; i < 8; i++)
-// 				OLED_WriteDat(F8X16[c * 16 + i]);
-// 			OLED_SetPos(x, y + 1);
-// 			for (i = 0; i < 8; i++)
-// 				OLED_WriteDat(F8X16[c * 16 + i + 8]);
-// 			x += 8;
-// 			j++;
-// 		}
-// 	}
-// 	break;
-// 	}
-// }
-
-void OLED_ShowCN(uint8_t x, uint8_t y, uint8_t number)
+void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t ch, fontInfo_t font, bool isHightlight)
 {
-	unsigned char wm = 0;
-	unsigned int adder = 32 * number;
-	OLED_SetPos(x, y);
-	for (wm = 0; wm < 16; wm++)
+	uint8_t yByteSize = font.ySize / 8 + ((font.ySize % 8) ? 1 : 0);
+
+	OLED_ShowSingleChar(x, y, ch, font, yByteSize, isHightlight);
+}
+
+void OLED_ShowStr(uint8_t x, uint8_t y, uint8_t ch[], fontInfo_t font, bool isHighlight)
+{
+	uint8_t count = 0;
+	while (ch[count] != '\0')
 	{
-		OLED_WriteDat(F16x16[adder]);
-		adder += 1;
-	}
-	OLED_SetPos(x, y + 1);
-	for (wm = 0; wm < 16; wm++)
-	{
-		OLED_WriteDat(F16x16[adder]);
-		adder += 1;
+		OLED_ShowChar(x + count * font.xSize, y, ch[count], font, isHighlight);
+		count++;
 	}
 }
 

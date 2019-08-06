@@ -11,6 +11,9 @@
 #include "ads1115.h"
 #include "FDC2214.h"
 #include "oled.h"
+#include "spi.h"
+#include "gui.h"
+#include "image.h"
 
 int main(void)
 {
@@ -22,81 +25,19 @@ int main(void)
 
     LED_Init();
 
-    I2C_Soft_Init();
-
-    // 下面依次是 OLED / MPU6050 / FDC2214 / 舵机 / RGBLED 的初始化
-    // OLED写了简单的GUI可以通过定时器定期刷新的方式显示，可定制显示控件 感兴趣可以自己研究
-    // ADS1115 不需要初始化直接调用读取函数
-
+    HardwareSPI_Init();
     OLED_Init();
-    MPU6050_Init();
 
-    bool capOk = FDC2214_begin(0xF, 0x6, 0x5, false);
-    //setup all four channels, autoscan with 4 channels, deglitch at 10MHz, external oscillator
-    printf("Sensor %s\r\n", capOk ? "OK" : "Fail");
+    OLED_DrawBMP(0, 0, 128, 8, (uint8_t *)guaiqiao);
 
-    Servo_Init(0.0, 180);
-    RGBLED_Init(0x7F7F7F);
-
+    // uint8_t str[10];
     while (1)
     {
-        PeriodicTask(500, LED_Blink(0));
-    }
-}
-
-void ServoTest(void)
-{
-    for (;;)
-    {
-        for (size_t i = 0; i < 180; i++)
-        {
-            Servo_To(i);
-            delay(10);
-        }
-        for (size_t i = 180; i > 0; i--)
-        {
-            Servo_To(i);
-            delay(10);
-        }
-    }
-}
-
-void RGBLED_Test(void)
-{
-    for (;;)
-    {
-        RGBLED_Set(0xFF0000);
-        delay(500);
-        RGBLED_Set(0xFFFF00);
-        delay(500);
-        RGBLED_Set(0x00FF00);
-        delay(500);
-        RGBLED_Set(0x00FFFF);
-        delay(500);
-        RGBLED_Set(0x0000FF);
-        delay(500);
-        RGBLED_Set(0xFF00FF);
-        delay(500);
-        RGBLED_Set(0x800000);
-        delay(500);
-        RGBLED_Set(0x808000);
-        delay(500);
-        RGBLED_Set(0x008000);
-        delay(500);
-        RGBLED_Set(0x008080);
-        delay(500);
-        RGBLED_Set(0x000080);
-        delay(500);
-        RGBLED_Set(0x800080);
-        delay(500);
-        RGBLED_Set(0xFFFFFF);
-        delay(500);
-        RGBLED_Set(0xC0C0C0);
-        delay(500);
-        RGBLED_Set(0x808080);
-        delay(500);
-        RGBLED_Set(0x000000);
-        delay(500);
+        // PeriodicTask(500, LED_Blink(0));
+        // GUI_RefreashInterface(componentsSet, componentsNumber);
+        // sprintf((char *)str, "%5.2f", millis() / 1000.0);
+        // OLED_ShowStr(0, 0, str, Font_12x24, false);
+        // delay(10);
     }
 }
 

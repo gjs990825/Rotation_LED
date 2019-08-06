@@ -19,7 +19,7 @@ GUI_Component_t Text_Angle = {
     .currentHighlight = false,
     .needBlink = false,
     .text = "Angle:",
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 1000,
     .lastTimeFlash = 0,
@@ -31,7 +31,7 @@ GUI_Component_t AngleValue = {
     .currentHighlight = false,
     .needBlink = false,
     .text = angleString,
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 90,
     .lastTimeFlash = 0,
@@ -43,7 +43,7 @@ GUI_Component_t Text_Target = {
     .currentHighlight = false,
     .needBlink = false,
     .text = "Goal:",
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 1000,
     .lastTimeFlash = 0,
@@ -55,7 +55,7 @@ GUI_Component_t TargetValue = {
     .currentHighlight = false,
     .needBlink = false,
     .text = targetString,
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 90,
     .lastTimeFlash = 0,
@@ -67,7 +67,7 @@ GUI_Component_t Target2Value = {
     .currentHighlight = false,
     .needBlink = false,
     .text = target2String,
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 90,
     .lastTimeFlash = 0,
@@ -79,7 +79,7 @@ GUI_Component_t StabilizedText = {
     .currentHighlight = false,
     .needBlink = false,
     .text = "Stabilized:",
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 1000,
     .lastTimeFlash = 0,
@@ -91,7 +91,7 @@ GUI_Component_t StabilizedValue = {
     .currentHighlight = false,
     .needBlink = false,
     .text = stabilizedString,
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 90,
     .lastTimeFlash = 0,
@@ -103,7 +103,7 @@ GUI_Component_t TimeText = {
     .currentHighlight = false,
     .needBlink = false,
     .text = "Time:",
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 1000,
     .lastTimeFlash = 0,
@@ -115,9 +115,9 @@ GUI_Component_t TimeValue = {
     .currentHighlight = false,
     .needBlink = false,
     .text = timeString,
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
-    .refreshInterval = 90,
+    .refreshInterval = 50,
     .lastTimeFlash = 0,
 };
 
@@ -144,7 +144,7 @@ GUI_Component_t ConfirmText = {
     .currentHighlight = false,
     .needBlink = false,
     .text = "Confirm?",
-    .size = 2,
+    .font = &Font_8x16,
     .lastTimeRefresh = 0,
     .refreshInterval = 90,
     .lastTimeFlash = 0,
@@ -176,11 +176,11 @@ void GUI_SetFlash(GUI_Component_t *component, bool status)
 // 更新可变数据
 void GUI_UpdateData(void)
 {
-//    sprintf((char *)AngleValue.text, "%5.2f", Get_CurrentAngle());
-//    sprintf((char *)TimeValue.text, "%5.2f", millis() / 1000.0);
-//    sprintf((char *)TargetValue.text, "%5.1f", setAngle1);
-//    sprintf((char *)Target2Value.text, "%5.1f", setAngle2);
-//    sprintf((char *)StabilizedValue.text, "%s", Is_Stablilized() ? "YES" : "NO ");
+    sprintf((char *)AngleValue.text, "%5.2f", 0.0);
+    sprintf((char *)TimeValue.text, "%5.2f", millis() / 1000.0);
+    sprintf((char *)TargetValue.text, "%5.1f", 0.0);
+    sprintf((char *)Target2Value.text, "%5.1f", 0.0);
+    sprintf((char *)StabilizedValue.text, "%s", 1 ? "YES" : "NO ");
 }
 
 // 闪烁控件
@@ -192,7 +192,7 @@ void GUI_FlashComponent(GUI_Component_t *components)
     OLED_ShowStr(components->x,
                  components->y,
                  components->text,
-                 components->size,
+                 *components->font,
                  components->currentHighlight);
 }
 
@@ -206,7 +206,7 @@ void GUI_RefreashComponent(GUI_Component_t *components)
     OLED_ShowStr(components->x,
                  components->y,
                  components->text,
-                 components->size,
+                 *components->font,
                  components->currentHighlight);
 }
 
@@ -236,8 +236,8 @@ uint8_t GUI_ConfirmPage(void)
     uint8_t key;
 
     needRefreash = false;
-//    在刷新程序里面定义接口
-//    GUI_ChangeDisplay(confirmComponents, confirmComponentsNumber);
+    //    在刷新程序里面定义接口
+    //    GUI_ChangeDisplay(confirmComponents, confirmComponentsNumber);
     OLED_CLS();
 
     while (1)
@@ -251,7 +251,7 @@ uint8_t GUI_ConfirmPage(void)
         }
     }
 
-//    GUI_ChangeDisplay(componentsSet, componentsNumber);
+    //    GUI_ChangeDisplay(componentsSet, componentsNumber);
     OLED_CLS();
     needRefreash = true;
 

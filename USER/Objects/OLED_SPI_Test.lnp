@@ -13,6 +13,7 @@
 ".\objects\fdc2214.o"
 ".\objects\servo.o"
 ".\objects\rgbled.o"
+".\objects\spi.o"
 ".\objects\delay.o"
 ".\objects\stm32f10x_it.o"
 ".\objects\sys.o"
@@ -44,7 +45,7 @@
 ".\objects\stm32f10x_tim.o"
 ".\objects\stm32f10x_usart.o"
 ".\objects\stm32f10x_wwdg.o"
---strict --scatter ".\Objects\Servo_Test.sct"
+--strict --scatter ".\Objects\OLED_SPI_Test.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
---list ".\Listings\Servo_Test.map" -o .\Objects\Servo_Test.axf
+--list ".\Listings\OLED_SPI_Test.map" -o .\Objects\OLED_SPI_Test.axf
