@@ -2,25 +2,30 @@
 #include "ledarray.h"
 #include "delay.h"
 #include "string.h"
+#include "debug.h"
 
 // 每个周期的分段个数
-#define numberOfInterval 360
+#define LandScapePixelNumber 360
+// 像素间隔比例
+#define PixelIntervalScale 0.1f
 
 // 旋转时间计数
 __IO uint32_t rotationCounter = 0;
-// 上次触发时间
-__IO uint32_t lastRoundStamp = 0;
+// 当前单个像素时间间隔
 __IO uint32_t currentInterval = 0;
+// 当前像素显示间隔
+__IO uint32_t currentPixelInterval = 0;
 
-uint16_t colorControl = 0xFF;
+// 当前帧计数
+uint16_t frameCounter = 0;
 
-bool displayBuffer[numberOfInterval][16];
+bool displayBuffer[LandScapePixelNumber][16];
 
 // 显示初始化
 void Display_Init(void)
 {
-    uint16_t arr = 0;
-    uint16_t psc = 0;
+    uint16_t arr = 71;
+    uint16_t psc = 99;
 
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
@@ -42,7 +47,7 @@ void Display_Init(void)
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 
-    TIM_Cmd(TIM3, ENABLE);
+    TIM_Cmd(TIM3, DISABLE);
 
     // 清空缓冲数据
     Display_CLS();
@@ -61,9 +66,11 @@ void Display_Control(FunctionalState status)
 }
 
 // 输出第x列的数据
-void Display_OutPutBuffer(uint16_t x)
+static void Display_OutPutBuffer(uint16_t x)
 {
-    LEDArray_Color(colorControl);
+    // 防越界
+    if (x > LandScapePixelNumber)
+        return;
 
     uint16_t outData = 0;
     for (uint8_t i = 0; i < 16; i++)
@@ -76,51 +83,70 @@ void Display_OutPutBuffer(uint16_t x)
 // 变更显示颜色
 void Display_Color(uint8_t color)
 {
-    colorControl = color;
+    LEDArray_Color(color);
 }
 
-void Display_AutoDisplay(void)
+// 自动显示内容
+static void Display_AutoDisplay(void)
 {
-    // 计算输出当前列
-    Display_OutPutBuffer((rotationCounter - lastRoundStamp) / currentInterval);
+    static uint32_t counter = 0;
+
+    if ((++counter) > currentInterval)
+    {
+        counter = 0;
+        frameCounter++;
+    }
+
+    // 分割像素点， 未到达显示区间不亮灯
+    if (counter > currentPixelInterval)
+    {
+        Display_OutPutBuffer(frameCounter);
+    }
+    else
+    {
+        LEDArray_Out(0);
+    }
+}
+
+// 红外中断处理
+void Display_InterruptHandle(void)
+{
+    // 上次中断时间戳
+    static uint32_t lastInterrupt = 0;
+    // 上次红外触发时间计数
+    static uint32_t lastRoundStamp = 0;
+
+    // 防红外输入抖动
+    if (IsTimeOut(lastInterrupt, 2))
+    {
+        // 记录上次中断时间戳
+        lastInterrupt = millis();
+
+        // 计算当前周期和像素间隔
+        currentInterval = (rotationCounter - lastRoundStamp) / LandScapePixelNumber;
+        currentPixelInterval = currentInterval * PixelIntervalScale;
+
+        lastRoundStamp = rotationCounter;
+
+        // 清空帧计数
+        frameCounter = 0;
+    }
 }
 
 void TIM3_IRQHandler(void)
 {
-    static bool infraredStatus = false;
+
+    DEBUG_PIN_1_SET();
 
     if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
     {
         TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 
+        // 计数器
         rotationCounter++;
-
-        bool currentStatus = Infrared_IsTiggered();
-
-        // 未触发，红外未触发
-        if (!infraredStatus && !currentStatus)
-        {
-            // do nothing
-        }
-        // 已触发， 红外触发
-        else if (infraredStatus && currentStatus)
-        {
-            // do nothing
-        }
-        // 未触发， 红外触发
-        else if (!infraredStatus && currentStatus)
-        {
-            infraredStatus = true;
-            // 计算当前周期
-            currentInterval = (rotationCounter - lastRoundStamp) / numberOfInterval;
-            lastRoundStamp = rotationCounter;
-        }
-        // 已触发， 红外未触发
-        else if (infraredStatus && !currentStatus)
-        {
-            infraredStatus = false;
-        }
-
+        // 刷新显示
         Display_AutoDisplay();
     }
+
+    DEBUG_PIN_1_RESET();
 }

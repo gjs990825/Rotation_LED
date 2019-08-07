@@ -338,7 +338,7 @@
               <MiscControls>--no_multibyte_chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\APP\my_lib;..\HARDWARE\KEY;..\SYSTEM\TIMERSTAMP;..\HARDWARE\LEDARRAY;..\APP\DISPLAY</IncludePath>
+              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\APP\my_lib;..\HARDWARE\KEY;..\SYSTEM\TIMERSTAMP;..\HARDWARE\LEDARRAY;..\APP\DISPLAY;..\APP\DEBUG</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -401,6 +401,11 @@
               <FileName>display.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\DISPLAY\display.c</FilePath>
+            </File>
+            <File>
+              <FileName>debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\DEBUG\debug.c</FilePath>
             </File>
           </Files>
         </Group>

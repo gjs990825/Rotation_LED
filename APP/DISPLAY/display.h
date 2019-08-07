@@ -10,4 +10,6 @@ void Display_Color(uint8_t color);
 void Display_AutoDisplay(void);
 void Display_CLS(void);
 
+void Display_InterruptHandle(void);
+
 #endif // _DISPLAY_H_

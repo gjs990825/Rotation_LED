@@ -1,4 +1,6 @@
 #include "ledarray.h"
+#include "display.h"
+#include "debug.h"
 
 // typedef struct ledPin
 // {
@@ -8,12 +10,17 @@
 
 // ledPin_t ledArray[16];
 
-// GPIOB\C, TIM2 PWM PA0\1
+// LED: GPIOB
+// TIMER: TIM2,
+// PWMPin: PA0\1
+// EXTI: PC13
 void LEDArray_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
     TIM_OCInitTypeDef TIM_OCInitStructure;
+    EXTI_InitTypeDef EXTI_InitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
 
     // LED输出控制
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
@@ -57,10 +64,27 @@ void LEDArray_Init(void)
     LEDArray_Color(0xFF);
 
     // 红外输入
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource13);
+
+    EXTI_InitStructure.EXTI_Line = EXTI_Line13;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+    EXTI_Init(&EXTI_InitStructure);
+
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVIC_InitStructure);
 }
 
 // 输出一列数据
@@ -86,4 +110,15 @@ void LEDArray_Color(uint8_t clolor)
 {
     TIM_SetCompare2(TIM2, clolor);
     TIM_SetCompare3(TIM2, 0xFF - clolor);
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+    DEBUG_PIN_2_SET();
+
+    Display_InterruptHandle();
+
+	EXTI_ClearITPendingBit(EXTI_Line13);
+
+    DEBUG_PIN_2_RESET();
 }

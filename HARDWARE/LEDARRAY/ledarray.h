@@ -3,7 +3,7 @@
 
 #include "sys.h"
 
-#define Infrared_In PAin(2)
+#define Infrared_In PCin(13)
 #define Infrared_IsTiggered() (Infrared_In)
 
 void LEDArray_Init(void);
