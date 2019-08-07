@@ -17,4 +17,8 @@ float map(float x, float in_min, float in_max, float out_min, float out_max);
 
 void infinity_loop(void);
 
+int setbit(int num, int bit);
+int clearbit(int num, int bit);
+bool testbit(int num, int bit);
+
 #endif //__MY_LIB_H__

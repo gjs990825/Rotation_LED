@@ -139,3 +139,18 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
 {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
+
+int setbit(int num, int bit)
+{
+	return num |= (1 << bit);
+}
+
+int clearbit(int num, int bit)
+{
+	return num &= ~(1 << bit);
+}
+
+bool testbit(int num, int bit)
+{
+	return num &= (1 << bit);
+}

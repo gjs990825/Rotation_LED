@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>OLED_SPI_Test</TargetName>
+      <TargetName>Rotation_LED</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>OLED_SPI_Test</OutputName>
+          <OutputName>Rotation_LED</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -138,7 +138,7 @@
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3>"" ()</Flash3>
+          <Flash3></Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -338,7 +338,7 @@
               <MiscControls>--no_multibyte_chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\HARDWARE\MOTOR;..\APP\my_lib;..\HARDWARE\MPU6050;..\HARDWARE\IIC;..\APP\PID;..\HARDWARE\KEY;..\HARDWARE\OLED;..\APP\GUI;..\HARDWARE\ADS1115;..\HARDWARE\FDC2214;..\SYSTEM\TIMERSTAMP;..\HARDWARE\SERVO;..\HARDWARE\RGBLED;..\HARDWARE\SPI</IncludePath>
+              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\APP\my_lib;..\HARDWARE\KEY;..\SYSTEM\TIMERSTAMP;..\HARDWARE\LEDARRAY;..\APP\DISPLAY</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -398,14 +398,9 @@
               <FilePath>..\APP\my_lib\my_lib.c</FilePath>
             </File>
             <File>
-              <FileName>pid.c</FileName>
+              <FileName>display.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\APP\PID\pid.c</FilePath>
-            </File>
-            <File>
-              <FileName>gui.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\APP\GUI\gui.c</FilePath>
+              <FilePath>..\APP\DISPLAY\display.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -418,54 +413,14 @@
               <FilePath>..\HARDWARE\LED\led.c</FilePath>
             </File>
             <File>
-              <FileName>motor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\MOTOR\motor.c</FilePath>
-            </File>
-            <File>
-              <FileName>mpu6050.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\MPU6050\mpu6050.c</FilePath>
-            </File>
-            <File>
-              <FileName>iic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\IIC\iic.c</FilePath>
-            </File>
-            <File>
               <FileName>key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\KEY\key.c</FilePath>
             </File>
             <File>
-              <FileName>oled.c</FileName>
+              <FileName>ledarray.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\OLED\oled.c</FilePath>
-            </File>
-            <File>
-              <FileName>ads1115.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\ADS1115\ads1115.c</FilePath>
-            </File>
-            <File>
-              <FileName>FDC2214.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\FDC2214\FDC2214.c</FilePath>
-            </File>
-            <File>
-              <FileName>servo.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\SERVO\servo.c</FilePath>
-            </File>
-            <File>
-              <FileName>RGBLED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\RGBLED\RGBLED.c</FilePath>
-            </File>
-            <File>
-              <FileName>spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\SPI\spi.c</FilePath>
+              <FilePath>..\HARDWARE\LEDARRAY\ledarray.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -503,14 +458,14 @@
               <FilePath>..\SYSTEM\usart\usart.c</FilePath>
             </File>
             <File>
-              <FileName>startup_stm32f10x_md.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\CMSIS\CORE\startup_stm32f10x_md.s</FilePath>
-            </File>
-            <File>
               <FileName>timerstamp.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SYSTEM\TIMERSTAMP\timerstamp.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup_stm32f10x_md.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\CMSIS\CORE\startup_stm32f10x_md.s</FilePath>
             </File>
           </Files>
         </Group>
