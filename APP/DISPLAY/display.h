@@ -3,12 +3,15 @@
 
 #include "sys.h"
 
+extern bool displayBuffer[][16];
+
 void Display_Init(void);
 void Display_Control(FunctionalState status);
 void Display_OutPutBuffer(uint16_t x);
 void Display_Color(uint8_t color);
 void Display_AutoDisplay(void);
 void Display_CLS(void);
+void Display_Scaling(float scale);
 
 void Display_InterruptHandle(void);
 

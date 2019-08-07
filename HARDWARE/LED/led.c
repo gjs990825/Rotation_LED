@@ -20,20 +20,6 @@ void LED_Init(void)
     GPIO_SetBits(GPIOC, GPIO_Pin_13);
 }
 
-// 声光提示
-void LightAndBeep(uint16_t t)
-{
-    for (uint16_t i = 0; i < t; i++)
-    {
-        LED1 = 0;
-        BEEP = 0;
-        delay_ms(50);
-        LED1 = 1;
-        BEEP = 1;
-        delay_ms(50);
-    }
-}
-
 void LED_Blink(uint8_t LEDn)
 {
     

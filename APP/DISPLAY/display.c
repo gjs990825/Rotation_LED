@@ -9,6 +9,9 @@
 // 像素间隔比例
 #define PixelIntervalScale 0.1f
 
+// 缩放比例控制
+float scalingRatio = 1.0;
+
 // 旋转时间计数
 __IO uint32_t rotationCounter = 0;
 // 当前单个像素时间间隔
@@ -86,6 +89,12 @@ void Display_Color(uint8_t color)
     LEDArray_Color(color);
 }
 
+// 变更显示横向缩放
+void Display_Scaling(float scale)
+{
+    scalingRatio = scale;
+}
+
 // 自动显示内容
 static void Display_AutoDisplay(void)
 {
@@ -123,7 +132,7 @@ void Display_InterruptHandle(void)
         lastInterrupt = millis();
 
         // 计算当前周期和像素间隔
-        currentInterval = (rotationCounter - lastRoundStamp) / LandScapePixelNumber;
+        currentInterval = (rotationCounter - lastRoundStamp) * scalingRatio / LandScapePixelNumber;
         currentPixelInterval = currentInterval * PixelIntervalScale;
 
         lastRoundStamp = rotationCounter;

@@ -40,11 +40,35 @@ void BasicTask_2(void)
 // 独立显示两个全亮16*16点阵，间隔点为4
 void BasicTask_3(void)
 {
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        for (uint8_t j = 0; j < 16; j++)
+        {
+            for (uint8_t k = 0; k < 16; k++)
+            {
+                displayBuffer[j + (i * (16 + 4))][k] = 1;
+            }
+        }
+    }
+    delay(3000);
 }
 
 // 对矩形水平宽窄变换循环显示，宽窄变化不小于两个矩阵点距离，变化不少于5次
 void BasicTask_4(void)
 {
+    for (uint8_t i = 0; i < 5; i++)
+    {
+        for (uint8_t j = 0; j < 10; j++)
+        {
+            Display_Scaling(1 + 0.01 * j);
+            delay(100);
+        }
+        for (int8_t j = 9; j >= 0; j--)
+        {
+            Display_Scaling(1 + 0.01 * j);
+            delay(100);
+        }
+    }
 }
 
 // 基础任务
@@ -54,6 +78,7 @@ void BasicTask(uint8_t line1, uint8_t line2)
     BasicTask_2();
     BasicTask_3();
     BasicTask_4();
+    Display_CLS();
 }
 
 // 提高任务
@@ -69,10 +94,8 @@ int main(void)
     USART1_Init(115200);
     printf("Usart OK\r\n");
 
-    LED_Init();
 
     DebugPin_Init();
-
     LEDArray_Init();
     Display_Init();
 
@@ -82,7 +105,7 @@ int main(void)
 
     while (1)
     {
-        // PeriodicTask(500, LED_Blink(0));
+        // DEBUG_PIN_3_TOGGLE();
     }
 }
 
