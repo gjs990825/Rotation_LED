@@ -47,7 +47,10 @@ void LEDArray_Init(void)
     // LED输出控制
 #if defined(_LED_IN_DIFFERENT_PORT_)
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 
@@ -106,13 +109,13 @@ void LEDArray_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource13);
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource12);
 
-    EXTI_InitStructure.EXTI_Line = EXTI_Line13;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line12;
     EXTI_InitStructure.EXTI_LineCmd = ENABLE;
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
     EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
@@ -187,7 +190,7 @@ void LEDArray_ALLON(void)
     LEDArray_OutHex(0xFFFF);
 }
 
-// 越高越红
+// 数值越高越红，0-0xFF
 void LEDArray_Color(uint8_t clolor)
 {
     TIM_SetCompare2(TIM2, 0xFF - clolor);
@@ -197,5 +200,5 @@ void LEDArray_Color(uint8_t clolor)
 void EXTI15_10_IRQHandler(void)
 {
     Display_InterruptHandle();
-    EXTI_ClearITPendingBit(EXTI_Line13);
+    EXTI_ClearITPendingBit(EXTI_Line12);
 }

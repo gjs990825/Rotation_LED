@@ -9,11 +9,15 @@
 // 控制常量↓
 
 // 每个显示周期的分段个数
-#define LandscapePixelNumber 120
+#define LandscapePixelNumber 90
 // 显示周期占总周期的比例
 const float DisplayCycleToFullCycleProportion = 120.0 / 360.0;
 // 像素间隔时间
 const int PixelSpacingInterval = 1;
+
+// 稳定速度的周期区间
+const int cycleUpperLimit = 1700;
+const int cycleLowerLimit = 1400;
 
 // 控制变量↓
 
@@ -27,22 +31,31 @@ __IO uint16_t currentPixelCycle = 0;
 
 // 当前帧计数
 uint32_t frameCounter = 0;
+// 当前像素周期内计数
+uint32_t pixelCounter = 0;
 
+// 当前周期数值
+uint32_t currentCycle = 0;
+
+// 当前速度是否稳定
+bool cycleStablized = false;
+
+// 输出缓冲区
 bool displayBuffer[LandscapePixelNumber][16];
 
 // 显示初始化
 void Display_Init(void)
 {
-    uint16_t arr = 71;
-    uint16_t psc = 9;
+    uint16_t arr = 72;
+    uint16_t psc = 30;
 
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-    TIM_TimeBaseStructure.TIM_Period = arr;
-    TIM_TimeBaseStructure.TIM_Prescaler = psc;
+    TIM_TimeBaseStructure.TIM_Period = arr - 1;
+    TIM_TimeBaseStructure.TIM_Prescaler = psc - 1;
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
@@ -52,7 +65,7 @@ void Display_Init(void)
     TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
     NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 
@@ -60,6 +73,11 @@ void Display_Init(void)
 
     // 清空缓冲数据
     Display_CLS();
+}
+
+bool Display_IsStablized(void)
+{
+    return cycleStablized;
 }
 
 // 清空数据
@@ -127,7 +145,7 @@ static void Display_OutputBuffer(uint16_t x)
     // LEDArray_OutHex(Display_ArrayToHex(displayBuffer[x]));
 }
 
-// 变更显示颜色
+// 变更显示颜色，数值越高越红，0-0xFF
 void Display_Color(uint8_t color)
 {
     LEDArray_Color(color);
@@ -142,12 +160,10 @@ void Display_Scaling(float scale)
 // 自动显示内容
 void Display_AutoDisplay(void)
 {
-    static uint32_t counter = 0;
-
     // 像素
-    if ((++counter) > currentPixelCycle)
+    if ((++pixelCounter) > currentPixelCycle)
     {
-        counter = 0;
+        pixelCounter = 0;
         frameCounter++;
     }
 
@@ -155,7 +171,7 @@ void Display_AutoDisplay(void)
         return;
 
     // 分割像素点， 未到达显示区间不亮灯
-    if (counter >= PixelSpacingInterval)
+    if (pixelCounter >= PixelSpacingInterval)
     {
         Display_OutputBuffer(frameCounter);
     }
@@ -179,13 +195,28 @@ void Display_InterruptHandle(void)
         // 记录上次中断时间戳
         lastInterrupt = millis();
 
-        printf("Cycle：%d\t", (rotationCounter - lastRoundStamp));
+        // 计算当前周期时间
+        currentCycle = rotationCounter - lastRoundStamp;
+        printf("C:%d\r\n", currentCycle);
+        // 更新上一次触发时间
+        lastRoundStamp = rotationCounter;
+
+        // 判断周期时间是否在稳定区间
+        if (currentCycle <= cycleLowerLimit | currentCycle >= cycleUpperLimit)
+        {
+            cycleStablized = false;
+            return;
+        }
+        else
+        {
+            cycleStablized = true;
+        }
 
         // 当前像素周期时间
-        uint16_t pixelCycle = (rotationCounter - lastRoundStamp) * // 总周期的时间 *
-                              scalingRatio *                       // 缩放比例 *
-                              DisplayCycleToFullCycleProportion /  // 显示周期与总周期比例 /
-                              LandscapePixelNumber;                // 显示周期像素数目
+        uint16_t pixelCycle = currentCycle *                      // 当前周期的时间 *
+                              scalingRatio *                      // 缩放比例 *
+                              DisplayCycleToFullCycleProportion / // 显示周期与总周期比例 /
+                              LandscapePixelNumber;               // 显示周期像素数目
 
         // 像素时间变动超过1时候更新，防止长度跳动
         if (abs((int16_t)currentPixelCycle - (int32_t)pixelCycle) > 1)
@@ -193,14 +224,18 @@ void Display_InterruptHandle(void)
             currentPixelCycle = pixelCycle;
         }
 
-        // 更新上一次触发时间
-        lastRoundStamp = rotationCounter;
-
         // 清空帧计数
         frameCounter = 0;
+        pixelCounter = 0;
 
-        printf("PixelCycle:%d\r\n", currentPixelCycle);
+        printf("Pc:%d\r\n", currentPixelCycle);
     }
+}
+
+void Display_UnstableHandle(void)
+{
+    // 300毫秒横线循环显示
+    LEDArray_OutHex(1 << (millis() / 300 % 16));
 }
 
 void TIM3_IRQHandler(void)
@@ -211,7 +246,31 @@ void TIM3_IRQHandler(void)
 
         // 计数器
         rotationCounter++;
-        // 刷新显示
-        Display_AutoDisplay();
+
+        // 判断是否速度稳定
+        if (cycleStablized)
+        {
+            // 刷新显示
+            Display_AutoDisplay();
+        }
+        else
+        {
+            // 不稳定，等待
+            Display_UnstableHandle();
+        }
     }
+}
+
+void Display_WaitTillStabilized(void)
+{
+    Display_Control(ENABLE);
+
+    for (;;)
+    {
+        if (Display_IsStablized())
+            break;
+    }
+
+    Display_Control(DISABLE);
+    LEDArray_ALLOFF();
 }

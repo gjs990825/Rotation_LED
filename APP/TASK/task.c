@@ -7,13 +7,18 @@
 // 指定行显示两条线
 void BasicTask_1(uint8_t line1, uint8_t line2)
 {
+    Display_Color(0xFF);
+
     uint16_t outPutData = 0;
 
     outPutData |= 1 << line1;
     outPutData |= 1 << line2;
     Display_Control(DISABLE);
     LEDArray_OutHex(outPutData);
-    delay(1000);
+    delay(3000);
+
+    LEDArray_ALLOFF();
+    delay(500);
 }
 
 // 水平亮线上下往复
@@ -31,12 +36,15 @@ void BasicTask_2(void)
             delay(100);
         }
     }
+
+    LEDArray_ALLOFF();
+    delay(500);
 }
 
 // 独立显示两个全亮16*16点阵，间隔点为4
 void BasicTask_3(void)
 {
-    // Display_PrintBuffer();
+    Display_Control(ENABLE);
 
     for (uint8_t i = 0; i < 2; i++)
     {
@@ -49,9 +57,7 @@ void BasicTask_3(void)
         }
     }
 
-    // Display_PrintBuffer();
-
-    delay(3000);
+    delay(5000);
 }
 
 // 对矩形水平宽窄变换循环显示，宽窄变化不小于两个矩阵点距离，变化不少于5次
@@ -59,17 +65,20 @@ void BasicTask_4(void)
 {
     for (uint8_t i = 0; i < 5; i++)
     {
-        for (uint8_t j = 0; j < 10; j++)
+        for (uint8_t j = 0; j < 3; j++)
         {
-            Display_Scaling(1 + 0.01 * j);
-            delay(100);
+            Display_Scaling(1 + 0.5 * j);
+            delay(500);
         }
-        for (int8_t j = 9; j >= 0; j--)
+        for (int8_t j = 2; j >= 0; j--)
         {
-            Display_Scaling(1 + 0.01 * j);
-            delay(100);
+            Display_Scaling(1 + 0.5 * j);
+            delay(500);
         }
     }
+
+    Display_Control(DISABLE);
+    delay(500);
 }
 
 // 基础任务

@@ -4,6 +4,7 @@
 ".\objects\display.o"
 ".\objects\debug.o"
 ".\objects\task.o"
+".\objects\communication.o"
 ".\objects\led.o"
 ".\objects\key.o"
 ".\objects\ledarray.o"

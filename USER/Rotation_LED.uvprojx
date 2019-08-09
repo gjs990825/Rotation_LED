@@ -338,7 +338,7 @@
               <MiscControls>--no_multibyte_chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\APP\my_lib;..\HARDWARE\KEY;..\SYSTEM\TIMERSTAMP;..\HARDWARE\LEDARRAY;..\APP\DISPLAY;..\APP\DEBUG;..\APP\TASK</IncludePath>
+              <IncludePath>..\USER;..\CMSIS\CORE;..\CMSIS\STM32F10x_StdPeriph_Driver\inc;..\SYSTEM\sys;..\SYSTEM\delay;..\SYSTEM\usart;..\HARDWARE\LED;..\APP\my_lib;..\HARDWARE\KEY;..\SYSTEM\TIMERSTAMP;..\HARDWARE\LEDARRAY;..\APP\DISPLAY;..\APP\DEBUG;..\APP\TASK;..\APP\COMMUNICATION</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -411,6 +411,11 @@
               <FileName>task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\TASK\task.c</FilePath>
+            </File>
+            <File>
+              <FileName>communication.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\COMMUNICATION\communication.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -8,6 +8,7 @@
 #include "display.h"
 #include "debug.h"
 #include "task.h"
+#include "communication.h"
 
 int main(void)
 {
@@ -17,29 +18,17 @@ int main(void)
     USART1_Init(115200);
     printf("Usart OK\r\n");
 
-    DebugPin_Init();
     LEDArray_Init();
     Display_Init();
 
-    Display_Color(0x7F);
-
-    LEDArray_OutHex(0xFFFF);
-
-    TIM_Cmd(TIM3, ENABLE);
-
-    for (uint8_t i = 0; i < 2; i++)
-    {
-        for (uint8_t j = 0; j < 16; j++)
-        {
-            for (uint8_t k = 0; k < 16; k++)
-            {
-                displayBuffer[j + (i * (16 + 4))][k] = 1;
-            }
-        }
-    }
+    Display_WaitTillStabilized();
+    
 
     while (1)
     {
+        // BasicTask_All(7, 8);
+        Check_USARTMessage();
+
         // for (uint16_t i = 0; i < 64; i++)
         // {
         //     LEDArray_OutArray(displayBuffer[i]);
