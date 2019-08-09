@@ -1,16 +1,38 @@
 #include "ledarray.h"
 #include "display.h"
 #include "debug.h"
+#include "stdio.h"
 
-// typedef struct ledPin
-// {
-//     GPIO_TypeDef *GPIOx;
-//     uint16_t pin;
-// } ledPin_t;
+#if defined(_LED_IN_DIFFERENT_PORT_)
 
-// ledPin_t ledArray[16];
+typedef struct ledPin
+{
+    GPIO_TypeDef *GPIOx;
+    uint16_t pin;
+} ledPin_t;
 
-// LED: GPIOB
+ledPin_t ledArray[16] = {
+    {GPIOB, GPIO_Pin_0},
+    {GPIOB, GPIO_Pin_1},
+    {GPIOA, GPIO_Pin_7},
+    {GPIOA, GPIO_Pin_6},
+    {GPIOA, GPIO_Pin_5},
+    {GPIOA, GPIO_Pin_4},
+    {GPIOA, GPIO_Pin_0},
+    {GPIOA, GPIO_Pin_11},
+    {GPIOA, GPIO_Pin_12},
+    {GPIOA, GPIO_Pin_15},
+    {GPIOB, GPIO_Pin_3},
+    {GPIOB, GPIO_Pin_8},
+    {GPIOB, GPIO_Pin_7},
+    {GPIOB, GPIO_Pin_6},
+    {GPIOB, GPIO_Pin_5},
+    {GPIOB, GPIO_Pin_4},
+};
+
+#endif // _LED_IN_DIFFERENT_PORT_
+
+// LED: See Comments Above
 // TIMER: TIM2,
 // PWMPin: PA0\1
 // EXTI: PC13
@@ -23,6 +45,20 @@ void LEDArray_Init(void)
     NVIC_InitTypeDef NVIC_InitStructure;
 
     // LED输出控制
+#if defined(_LED_IN_DIFFERENT_PORT_)
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+
+    for (uint8_t i = 0; i < 16; i++)
+    {
+        GPIO_InitStructure.GPIO_Pin = ledArray[i].pin;
+        GPIO_Init(ledArray[i].GPIOx, &GPIO_InitStructure);
+    }
+
+#else
+
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
@@ -30,6 +66,8 @@ void LEDArray_Init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     GPIO_SetBits(GPIOB, GPIO_Pin_All);
+
+#endif // _LED_IN_DIFFERENT_PORT_
 
     // PWM 控制 A1 A2
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
@@ -44,7 +82,7 @@ void LEDArray_Init(void)
     TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInitStructure.TIM_Period = 0xFF - 1;
-    TIM_TimeBaseInitStructure.TIM_Prescaler = 28 - 1;
+    TIM_TimeBaseInitStructure.TIM_Prescaler = 0;
     TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
 
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
@@ -67,7 +105,7 @@ void LEDArray_Init(void)
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOC, &GPIO_InitStructure);
@@ -82,43 +120,82 @@ void LEDArray_Init(void)
 
     NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
     NVIC_Init(&NVIC_InitStructure);
 }
 
 // 输出一列数据
-void LEDArray_Out(uint16_t ledStatus)
+void LEDArray_OutHex(uint16_t ledStatus)
 {
-    GPIOB->BRR = ~ledStatus;
+    ledStatus = ~ledStatus;
+
+#if defined(_LED_IN_DIFFERENT_PORT_)
+
+    for (uint16_t i = 0; i < 16; i++)
+    {
+        if (ledStatus & 0x1)
+        {
+            GPIO_SetBits(ledArray[i].GPIOx, ledArray[i].pin);
+        }
+        else
+        {
+            GPIO_ResetBits(ledArray[i].GPIOx, ledArray[i].pin);
+        }
+        ledStatus >>= 1;
+    }
+
+#else
+
+    GPIO_Write(GPIOB, ledStatus);
+
+#endif // _LED_IN_DIFFERENT_PORT_
+}
+
+void LEDArray_OutArray(bool array[16])
+{
+#if defined(_LED_IN_DIFFERENT_PORT_)
+
+    for (uint16_t i = 0; i < 16; i++)
+    {
+        if (array[i])
+        {
+			GPIO_ResetBits(ledArray[i].GPIOx, ledArray[i].pin);
+        }
+        else
+        {
+            GPIO_SetBits(ledArray[i].GPIOx, ledArray[i].pin);
+        }
+    }
+
+#else
+
+    GPIO_Write(GPIOB, ~Display_ArrayToHex(array));
+
+#endif // _LED_IN_DIFFERENT_PORT_
 }
 
 // 全灭
 void LEDArray_ALLOFF(void)
 {
-    LEDArray_Out(0);
+    LEDArray_OutHex(0);
 }
 
 // 全亮
 void LEDArray_ALLON(void)
 {
-    LEDArray_Out(0xFFFF);
+    LEDArray_OutHex(0xFFFF);
 }
 
 // 越高越红
 void LEDArray_Color(uint8_t clolor)
 {
-    TIM_SetCompare2(TIM2, clolor);
-    TIM_SetCompare3(TIM2, 0xFF - clolor);
+    TIM_SetCompare2(TIM2, 0xFF - clolor);
+    TIM_SetCompare3(TIM2, clolor);
 }
 
 void EXTI15_10_IRQHandler(void)
 {
-    DEBUG_PIN_2_SET();
-
     Display_InterruptHandle();
-
-	EXTI_ClearITPendingBit(EXTI_Line13);
-
-    DEBUG_PIN_2_RESET();
+    EXTI_ClearITPendingBit(EXTI_Line13);
 }

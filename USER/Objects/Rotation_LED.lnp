@@ -3,6 +3,7 @@
 ".\objects\my_lib.o"
 ".\objects\display.o"
 ".\objects\debug.o"
+".\objects\task.o"
 ".\objects\led.o"
 ".\objects\key.o"
 ".\objects\ledarray.o"
