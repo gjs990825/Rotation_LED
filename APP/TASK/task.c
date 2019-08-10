@@ -8,22 +8,30 @@
 void BasicTask_1(uint8_t line1, uint8_t line2)
 {
     Display_Color(0xFF);
+    Display_CLS();
 
     uint16_t outPutData = 0;
 
     outPutData |= 1 << line1;
     outPutData |= 1 << line2;
-    Display_Control(DISABLE);
-    LEDArray_OutHex(outPutData);
-    delay(3000);
 
-    LEDArray_ALLOFF();
-    delay(500);
+    for (uint8_t i = 0; i < LandscapePixelNumber; i++)
+    {
+        Display_WriteARow_Hex(outPutData, i);
+    }
+
+    Display_Control(ENABLE);
+    delay(5000);
+    Display_Control(DISABLE);
+    Display_CLS();
 }
 
 // 水平亮线上下往复
 void BasicTask_2(void)
 {
+    Display_CLS();
+    Display_Control(ENABLE);
+
     uint16_t outPutData = 0;
     for (uint8_t i = 0; i < 4; i++)
     {
@@ -32,18 +40,24 @@ void BasicTask_2(void)
             outPutData = 0;
             outPutData |= 1 << (15 - j);
             outPutData |= 1 << j;
-            LEDArray_OutHex(outPutData);
+
+            for (uint8_t k = 0; k < LandscapePixelNumber; k++)
+            {
+                Display_WriteARow_Hex(outPutData, k);
+            }
             delay(100);
         }
     }
 
-    LEDArray_ALLOFF();
+    Display_Control(DISABLE);
     delay(500);
 }
 
 // 独立显示两个全亮16*16点阵，间隔点为4
 void BasicTask_3(void)
 {
+    Display_CLS();
+
     Display_Control(ENABLE);
 
     for (uint8_t i = 0; i < 2; i++)
@@ -78,6 +92,7 @@ void BasicTask_4(void)
     }
 
     Display_Control(DISABLE);
+    Display_CLS();
     delay(500);
 }
 
@@ -94,23 +109,16 @@ void BasicTask_All(uint8_t line1, uint8_t line2)
 // 按顺序在120度弧面内同时显示（三个点阵点间隔）接收到的图文信息
 void PromotedTask_1(uint16_t img1[16], uint16_t img2[16], uint16_t img3[16])
 {
-    bool pixel[16];
+    Display_CLS();
 
     for (uint8_t i = 0; i < 16; i++)
     {
-        Display_HexToArray(img1[i], pixel);
-        Display_WriteARow(pixel, ((16 + 3) * 0) + i);
+        Display_WriteARow_Hex(img1[i], i + (0 * (16 + 3)));
+        Display_WriteARow_Hex(img2[i], i + (1 * (16 + 3)));
+        Display_WriteARow_Hex(img3[i], i + (2 * (16 + 3)));
     }
-    for (uint8_t i = 0; i < 16; i++)
-    {
-        Display_HexToArray(img2[i], pixel);
-        Display_WriteARow(pixel, ((16 + 3) * 1) + i);
-    }
-    for (uint8_t i = 0; i < 16; i++)
-    {
-        Display_HexToArray(img3[i], pixel);
-        Display_WriteARow(pixel, ((16 + 3) * 2) + i);
-    }
+
+    Display_Control(ENABLE);
 
     delay(8000);
 }

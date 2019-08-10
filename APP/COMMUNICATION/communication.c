@@ -3,12 +3,11 @@
 #include "stdio.h"
 #include "task.h"
 #include "string.h"
+#include "display.h"
 
-char img1DataKey[] = "IMG1_DATA:";
-char img2DataKey[] = "IMG2_DATA:";
-char img3DataKey[] = "IMG3_DATA:";
-char controlBasicKey[] = "CONTROL_Basic:";
-char controlPromotedKey[] = "CONTROL_Promote:";
+uint16_t img1Data[16] = {0};
+uint16_t img2Data[16] = {0};
+uint16_t img3Data[16] = {0};
 
 void CONN_ExcuteCMD(char *str)
 {
@@ -53,6 +52,39 @@ void CONN_ExcuteCMD(char *str)
     }
 }
 
+void CONN_ProcessData(char *str)
+{
+    uint16_t *pImgN = NULL;
+    int imgN, tempData, i;
+    if (sscanf(str, "IMG_DATA_%d:[%d](%X)", &imgN, &i, &tempData) == 3)
+    {
+        switch (imgN)
+        {
+        case 1:
+            pImgN = img1Data;
+            break;
+        case 2:
+            pImgN = img2Data;
+            break;
+        case 3:
+            pImgN = img3Data;
+            break;
+        default:
+            return;
+        }
+        pImgN[i] = (uint16_t)tempData;
+    }
+    else
+    {
+        if (strstr(str, "IMG_DATA_OK"))
+        {
+            PromotedTask_1(img1Data, img2Data, img3Data);
+            PromotedTask_2();
+            PromotedTask_3();
+        }
+    }
+}
+
 // 检查串口消息
 void Check_USARTMessage(void)
 {
@@ -64,6 +96,11 @@ void Check_USARTMessage(void)
         {
             CONN_ExcuteCMD((char *)USART_RX_BUF);
         }
+        else if (strstr((char *)USART_RX_BUF, "IMG_DATA_") != NULL)
+        {
+            CONN_ProcessData((char *)USART_RX_BUF);
+        }
+
         USART_CLR_REC();
     }
 }

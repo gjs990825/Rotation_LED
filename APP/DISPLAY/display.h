@@ -3,6 +3,9 @@
 
 #include "sys.h"
 
+// 每个显示周期的分段个数
+#define LandscapePixelNumber 90
+
 // 缓冲
 
 extern bool displayBuffer[][16];
@@ -22,6 +25,7 @@ void Display_CLS(void);
 
 void Display_OutputBuffer(uint16_t x);
 void Display_WriteARow(bool pixel[16], uint16_t x);
+void Display_WriteARow_Hex(uint16_t row, uint16_t x);
 
 // 转换工具
 

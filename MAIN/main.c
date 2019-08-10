@@ -22,26 +22,12 @@ int main(void)
     Display_Init();
 
     Display_WaitTillStabilized();
-    
 
     while (1)
     {
-        // BasicTask_All(7, 8);
         Check_USARTMessage();
 
-        // for (uint16_t i = 0; i < 64; i++)
-        // {
-        //     LEDArray_OutArray(displayBuffer[i]);
-        //     delay(100);
-        // }
-        
-        // BasicTask_1(2, 13);
-        // BasicTask_2();
-
         // LEDArray_OutHex(0);
-        // BasicTask_3();
-        // Display_CLS();
-        // delay(1000);
 
         // for (uint8_t i = 0; i < 16; i++)
         // {
@@ -49,8 +35,6 @@ int main(void)
         //     delay(300);
         //     printf("%d\r\n", i);
         // }
-        // PeriodicTask(500, printf("2333\r\n"));
-        // PeriodicTask(500, Display_Color())
         // delay(500);
     }
 }

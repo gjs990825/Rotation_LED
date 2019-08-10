@@ -8,16 +8,14 @@
 
 // 控制常量↓
 
-// 每个显示周期的分段个数
-#define LandscapePixelNumber 90
 // 显示周期占总周期的比例
 const float DisplayCycleToFullCycleProportion = 120.0 / 360.0;
 // 像素间隔时间
 const int PixelSpacingInterval = 1;
 
 // 稳定速度的周期区间
-const int cycleUpperLimit = 1700;
-const int cycleLowerLimit = 1400;
+const int cycleUpperLimit = 1600;
+const int cycleLowerLimit = 900;
 
 // 控制变量↓
 
@@ -121,6 +119,16 @@ void Display_WriteARow(bool pixel[16], uint16_t x)
     }
 }
 
+// 写入一列（HEX）
+void Display_WriteARow_Hex(uint16_t row, uint16_t x)
+{
+    for (uint8_t i = 0; i < 16; i++)
+    {
+        displayBuffer[x][i] = row & 0x0001;
+        row >>= 1;
+    }
+}
+
 // 输出前120列的缓存
 void Display_PrintBuffer(void)
 {
@@ -167,8 +175,12 @@ void Display_AutoDisplay(void)
         frameCounter++;
     }
 
+    // 超出显示范围关闭LED
     if (frameCounter >= LandscapePixelNumber)
+    {
+        LEDArray_OutHex(0);
         return;
+    }
 
     // 分割像素点， 未到达显示区间不亮灯
     if (pixelCounter >= PixelSpacingInterval)
