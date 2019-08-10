@@ -38,6 +38,14 @@ void CONN_ExcuteCMD(char *str)
             printf("Basic_4\r\n");
             BasicTask_4();
             break;
+        case 5:
+            printf("Basic_ALL\r\n");
+            if (sscanf(str, "CONTROL_Basic:[5][%d][%d]", &line1, &line2) == 2)
+            {
+                printf("Basic_ALL:%d, %d\r\n", line1, line2);
+                BasicTask_All(line1, line2);
+            }
+            break;
         default:
             printf("ERROR\r\n");
             break;
@@ -50,13 +58,12 @@ void Check_USARTMessage(void)
 {
     if (USART_RECEIVED)
     {
-        USART_CLR_REC();
-
         printf("%s\r\n", USART_RX_BUF);
 
         if (strstr((char *)USART_RX_BUF, "CONTROL_Basic:") != NULL)
         {
             CONN_ExcuteCMD((char *)USART_RX_BUF);
         }
+        USART_CLR_REC();
     }
 }
