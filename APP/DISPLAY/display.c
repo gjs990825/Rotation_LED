@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "my_lib.h"
 
 // 控制常量↓
 
@@ -37,6 +38,9 @@ uint32_t currentCycle = 0;
 
 // 当前速度是否稳定
 bool cycleStablized = false;
+
+// 多彩模式
+bool colorfulMode = false;
 
 // 输出缓冲区
 bool displayBuffer[LandscapePixelNumber][16];
@@ -76,6 +80,11 @@ void Display_Init(void)
 bool Display_IsStablized(void)
 {
     return cycleStablized;
+}
+
+void Dispaly_ColorfulMode(FunctionalState status)
+{
+    colorfulMode = status;
 }
 
 // 清空数据
@@ -180,6 +189,29 @@ void Display_AutoDisplay(void)
     {
         LEDArray_OutHex(0);
         return;
+    }
+    else if (colorfulMode)
+    {
+        switch (frameCounter / 11)
+        {
+        case 0:
+            Display_Color(255);
+            break;
+        case 1:
+            Display_Color(64);
+            break;
+        case 2:
+            Display_Color(127);
+            break;
+        case 3:
+            Display_Color(0);
+            break;
+        case 4:
+            Display_Color(191);
+            break;
+        default:
+            break;
+        }
     }
 
     // 分割像素点， 未到达显示区间不亮灯

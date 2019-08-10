@@ -20,6 +20,7 @@ void Display_Control(FunctionalState status);
 void Display_Color(uint8_t color);
 void Display_Scaling(float scale);
 void Display_CLS(void);
+void Dispaly_ColorfulMode(FunctionalState status);
 
 // 输出
 

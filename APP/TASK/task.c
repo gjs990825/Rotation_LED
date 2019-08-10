@@ -126,6 +126,15 @@ void PromotedTask_1(uint16_t img1[16], uint16_t img2[16], uint16_t img3[16])
 // 使图文在显示的同时实现红色绿色橙黄色交替变色显示，变色样式不少于5种
 void PromotedTask_2(void)
 {
+    // Dispaly_ColorfulMode(ENABLE);
+    for (uint8_t j = 0; j < 4; j++)
+    {
+        for (uint8_t i = 0; i < 5; i++)
+        {
+            Display_Color(i * 40);
+            delay(500);
+        }
+    }
 }
 
 // 其它（花里胡哨就完事了）

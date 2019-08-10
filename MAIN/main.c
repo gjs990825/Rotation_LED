@@ -23,6 +23,14 @@ int main(void)
 
     Display_WaitTillStabilized();
 
+    for (uint8_t i = 0; i < 54; i++)
+    {
+        Display_WriteARow_Hex(0xFFFF, i);
+    }
+
+    // Display_Control(ENABLE);
+    // Dispaly_ColorfulMode(ENABLE);
+
     while (1)
     {
         Check_USARTMessage();
