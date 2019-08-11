@@ -77,16 +77,16 @@ void BasicTask_3(void)
 // 对矩形水平宽窄变换循环显示，宽窄变化不小于两个矩阵点距离，变化不少于5次
 void BasicTask_4(void)
 {
-    for (uint8_t i = 0; i < 5; i++)
+    for (uint8_t i = 0; i < 2; i++)
     {
-        for (uint8_t j = 0; j < 3; j++)
+        for (uint8_t j = 1; j <= 5; j++)
         {
-            Display_Scaling(1 + 0.5 * j);
+            Display_Scaling(1 + 0.4 * j);
             delay(500);
         }
-        for (int8_t j = 2; j >= 0; j--)
+        for (int8_t j = 4; j >= 0; j--)
         {
-            Display_Scaling(1 + 0.5 * j);
+            Display_Scaling(1 + 0.4 * j);
             delay(500);
         }
     }
