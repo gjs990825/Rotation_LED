@@ -12,38 +12,42 @@
 
 int main(void)
 {
+    // 系统初始化
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     delay_init();
     Timestamp_Init();
+
+    // 串口初始化
     USART1_Init(115200);
     printf("Usart OK\r\n");
 
+    // 初始化LED线阵和红外反馈
     LEDArray_Init();
+    // 初始化显示刷新和速度检测
     Display_Init();
 
+    // 等待运行稳定
     Display_WaitTillStabilized();
 
-    for (uint8_t i = 0; i < 54; i++)
-    {
-        Display_WriteARow_Hex(0xFFFF, i);
-    }
+    // 显示运动的斜线
+    Running_Slashes();
 
-    // Display_Control(ENABLE);
-    // Dispaly_ColorfulMode(ENABLE);
+    // 上次处理串口消息的时间
+    uint32_t lastProcess = 0;
 
     while (1)
     {
-        Check_USARTMessage();
+        // 检查串口消息
+        if (Check_USARTMessage())
+        {
+            lastProcess = millis();
+        }
 
-        // LEDArray_OutHex(0);
-
-        // for (uint8_t i = 0; i < 16; i++)
-        // {
-        //     LEDArray_OutHex(1 << i);
-        //     delay(300);
-        //     printf("%d\r\n", i);
-        // }
-        // delay(500);
+        // 数秒内无动作进入计时模式，任意操作退出
+        if (IsTimeOut(lastProcess, 3000))
+        {
+            Clock_Display();
+        }
     }
 }
 

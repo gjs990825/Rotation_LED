@@ -62,7 +62,8 @@ void LEDArray_Init(void)
 
 #else
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_All;
@@ -102,11 +103,11 @@ void LEDArray_Init(void)
     TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
 
     TIM_Cmd(TIM2, ENABLE);
-    LEDArray_Color(0xFF);
+    LEDArray_Color(0x00);
 
     // 红外输入
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+#if defined(_LED_IN_DIFFERENT_PORT_)
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
@@ -126,6 +127,29 @@ void LEDArray_Init(void)
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
     NVIC_Init(&NVIC_InitStructure);
+
+#else
+
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource13);
+
+    EXTI_InitStructure.EXTI_Line = EXTI_Line13;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+    EXTI_Init(&EXTI_InitStructure);
+
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_Init(&NVIC_InitStructure);
+
+#endif
 }
 
 // 输出一列数据
@@ -163,7 +187,7 @@ void LEDArray_OutArray(bool array[16])
     {
         if (array[i])
         {
-			GPIO_ResetBits(ledArray[i].GPIOx, ledArray[i].pin);
+            GPIO_ResetBits(ledArray[i].GPIOx, ledArray[i].pin);
         }
         else
         {
@@ -200,5 +224,14 @@ void LEDArray_Color(uint8_t clolor)
 void EXTI15_10_IRQHandler(void)
 {
     Display_InterruptHandle();
+
+#if defined(_LED_IN_DIFFERENT_PORT_)
+
     EXTI_ClearITPendingBit(EXTI_Line12);
+
+#else
+
+    EXTI_ClearITPendingBit(EXTI_Line13);
+
+#endif
 }

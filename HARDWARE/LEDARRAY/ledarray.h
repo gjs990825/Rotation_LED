@@ -4,7 +4,7 @@
 #include "sys.h"
 
 // LED阵列是否在同一端口
-#define _LED_IN_DIFFERENT_PORT_ 1
+// #define _LED_IN_DIFFERENT_PORT_
 
 #define Infrared_In PCin(13)
 #define Infrared_IsTiggered() (Infrared_In)

@@ -20,12 +20,15 @@ void UART_write(char c)
 		;
 }
 
-u8 USART_RX_BUF[USART_REC_LEN]; //½ÓÊÕ»º³å,×î´óUSART_REC_LEN¸ö×Ö½Ú.
-//½ÓÊÕ×´Ì¬
-//bit15£¬	½ÓÊÕÍê³É±êÖ¾
-//bit14£¬	½ÓÊÕµ½0x0d
-//bit13~0£¬	½ÓÊÕµ½µÄÓÐÐ§×Ö½ÚÊýÄ¿
-u16 USART_RX_STA = 0; //½ÓÊÕ×´Ì¬±ê¼Ç
+//æŽ¥æ”¶ç¼“å†²,æœ€å¤§USART_REC_LENä¸ªå­—èŠ‚.
+u8 USART_RX_BUF[USART_REC_LEN];
+
+//æŽ¥æ”¶çŠ¶æ€æ ‡è®°
+//æŽ¥æ”¶çŠ¶æ€
+//bit15ï¼Œ		æŽ¥æ”¶å®Œæˆæ ‡å¿—
+//bit14ï¼Œ		æŽ¥æ”¶åˆ°0x0d
+//bit13 ~ 0ï¼Œ	æŽ¥æ”¶åˆ°çš„æœ‰æ•ˆå­—èŠ‚æ•°ç›®
+u16 USART_RX_STA = 0;
 
 void USART1_Init(uint32_t baudrate)
 {
@@ -69,26 +72,22 @@ void USART1_Init(uint32_t baudrate)
 	USART_Cmd(USART1, ENABLE);
 }
 
-void USART1_IRQHandler(void) //´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
+void USART1_IRQHandler(void) //ä¸²å£1ä¸­æ–­æœåŠ¡ç¨‹åº
 {
-	u8 Res;
-#if SYSTEM_SUPPORT_OS //Èç¹ûSYSTEM_SUPPORT_OSÎªÕæ£¬ÔòÐèÒªÖ§³ÖOS.
-	OSIntEnter();
-#endif
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) //½ÓÊÕÖÐ¶Ï(½ÓÊÕµ½µÄÊý¾Ý±ØÐëÊÇ0x0d 0x0a½áÎ²)
+	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) //æŽ¥æ”¶ä¸­æ–­(æŽ¥æ”¶åˆ°çš„æ•°æ®å¿…é¡»æ˜¯0x0d 0x0aç»“å°¾)
 	{
-		Res = USART_ReceiveData(USART1); //¶ÁÈ¡½ÓÊÕµ½µÄÊý¾Ý
+		uint8_t Res = USART_ReceiveData(USART1); //è¯»å–æŽ¥æ”¶åˆ°çš„æ•°æ®
 
-		if ((USART_RX_STA & 0x8000) == 0) //½ÓÊÕÎ´Íê³É
+		if ((USART_RX_STA & 0x8000) == 0) //æŽ¥æ”¶æœªå®Œæˆ
 		{
-			if (USART_RX_STA & 0x4000) //½ÓÊÕµ½ÁË0x0d
+			if (USART_RX_STA & 0x4000) //æŽ¥æ”¶åˆ°äº†0x0d
 			{
 				if (Res != 0x0a)
-					USART_RX_STA = 0; //½ÓÊÕ´íÎó,ÖØÐÂ¿ªÊ¼
+					USART_RX_STA = 0; //æŽ¥æ”¶é”™è¯¯,é‡æ–°å¼€å§‹
 				else
-					USART_RX_STA |= 0x8000; //½ÓÊÕÍê³ÉÁË
+					USART_RX_STA |= 0x8000; //æŽ¥æ”¶å®Œæˆäº†
 			}
-			else //»¹Ã»ÊÕµ½0X0D
+			else //è¿˜æ²¡æ”¶åˆ°0X0D
 			{
 				if (Res == 0x0d)
 					USART_RX_STA |= 0x4000;
@@ -97,12 +96,9 @@ void USART1_IRQHandler(void) //´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
 					USART_RX_BUF[USART_RX_STA & 0X3FFF] = Res;
 					USART_RX_STA++;
 					if (USART_RX_STA > (USART_REC_LEN - 1))
-						USART_RX_STA = 0; //½ÓÊÕÊý¾Ý´íÎó,ÖØÐÂ¿ªÊ¼½ÓÊÕ
+						USART_RX_STA = 0; //æŽ¥æ”¶æ•°æ®é”™è¯¯,é‡æ–°å¼€å§‹æŽ¥æ”¶
 				}
 			}
 		}
 	}
-#if SYSTEM_SUPPORT_OS //Èç¹ûSYSTEM_SUPPORT_OSÎªÕæ£¬ÔòÐèÒªÖ§³ÖOS.
-	OSIntExit();
-#endif
 }

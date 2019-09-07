@@ -4,10 +4,65 @@
 #include "task.h"
 #include "string.h"
 #include "display.h"
+#include "delay.h"
 
-uint16_t img1Data[16] = {0};
-uint16_t img2Data[16] = {0};
-uint16_t img3Data[16] = {0};
+uint16_t img1[16] = {
+    0xF000,
+    0xF000,
+    0xF000,
+    0xF000,
+    0x0F00,
+    0x0F00,
+    0x0F00,
+    0x0F00,
+    0x00F0,
+    0x00F0,
+    0x00F0,
+    0x00F0,
+    0x000F,
+    0x000F,
+    0x000F,
+    0x000F,
+};
+uint16_t img2[16] = {
+    0x00F0,
+    0x00F0,
+    0x00F0,
+    0x00F0,
+    0x000F,
+    0x000F,
+    0x000F,
+    0x000F,
+    0xF000,
+    0xF000,
+    0xF000,
+    0xF000,
+    0x0F00,
+    0x0F00,
+    0x0F00,
+    0x0F00,
+};
+uint16_t img3[16] = {
+    0x000F,
+    0x000F,
+    0x000F,
+    0x000F,
+    0x00F0,
+    0x00F0,
+    0x00F0,
+    0x00F0,
+    0x0F00,
+    0x0F00,
+    0x0F00,
+    0x0F00,
+    0xF000,
+    0xF000,
+    0xF000,
+    0xF000,
+};
+
+// 集合
+uint16_t *img[3] = {img1, img2, img3};
 
 void CONN_ExcuteCMD(char *str)
 {
@@ -21,29 +76,16 @@ void CONN_ExcuteCMD(char *str)
         case 1:
             if (sscanf(str, "CONTROL_Basic:[1][%d][%d]", &line1, &line2) == 2)
             {
-                printf("Basic_1:%d, %d\r\n", line1, line2);
                 BasicTask_1(line1, line2);
             }
             break;
         case 2:
-            printf("Basic_2\r\n");
             BasicTask_2();
             break;
         case 3:
-            printf("Basic_3\r\n");
+            // 3/4任务在一块
             BasicTask_3();
-            break;
-        case 4:
-            printf("Basic_4\r\n");
             BasicTask_4();
-            break;
-        case 5:
-            printf("Basic_ALL\r\n");
-            if (sscanf(str, "CONTROL_Basic:[5][%d][%d]", &line1, &line2) == 2)
-            {
-                printf("Basic_ALL:%d, %d\r\n", line1, line2);
-                BasicTask_All(line1, line2);
-            }
             break;
         default:
             printf("ERROR\r\n");
@@ -58,49 +100,73 @@ void CONN_ProcessData(char *str)
     int imgN, tempData, i;
     if (sscanf(str, "IMG_DATA_%d:[%d](%X)", &imgN, &i, &tempData) == 3)
     {
-        switch (imgN)
+        if (imgN <= 3 && imgN > 0)
         {
-        case 1:
-            pImgN = img1Data;
-            break;
-        case 2:
-            pImgN = img2Data;
-            break;
-        case 3:
-            pImgN = img3Data;
-            break;
-        default:
-            return;
-        }
-        pImgN[i] = (uint16_t)tempData;
-    }
-    else
-    {
-        if (strstr(str, "IMG_DATA_OK"))
-        {
-            PromotedTask_1(img1Data, img2Data, img3Data);
-            PromotedTask_2();
-            PromotedTask_3();
+            pImgN = img[imgN - 1];
+
+            if (pImgN != NULL && i < 16 && i >= 0)
+            {
+                pImgN[i] = (uint16_t)tempData;
+            }
         }
     }
 }
 
+void CONN_Replay(char *str)
+{
+    int id;
+    if (sscanf(str, "Replay:[%d]", &id) == 1)
+    {
+        if (id == 1)
+        {
+            PromotedTask_1(img1, img2, img3);
+        }
+        else if (id == 2)
+        {
+            PromotedTask_2(img1, img2, img3);
+        }
+    }
+}
+
+uint8_t msgBuf[50];
+
 // 检查串口消息
-void Check_USARTMessage(void)
+// 返回是否有消息
+bool Check_USARTMessage(void)
 {
     if (USART_RECEIVED)
     {
-        printf("%s\r\n", USART_RX_BUF);
-
-        if (strstr((char *)USART_RX_BUF, "CONTROL_Basic:") != NULL)
-        {
-            CONN_ExcuteCMD((char *)USART_RX_BUF);
-        }
-        else if (strstr((char *)USART_RX_BUF, "IMG_DATA_") != NULL)
-        {
-            CONN_ProcessData((char *)USART_RX_BUF);
-        }
+        memset(msgBuf, 0, 50);
+        memcpy(msgBuf, USART_RX_BUF, USART_MSG_LEN);
 
         USART_CLR_REC();
+
+        if (strstr((char *)msgBuf, "IMG_DATA_") != NULL)
+        {
+            CONN_ProcessData((char *)msgBuf);
+        }
+        else
+        {
+            Display_CLS();
+            Display_Color(0);
+            Display_Control(ENABLE);
+            Display_ShowStr(0, 0, msgBuf, Font_8x16, false);
+
+            if (strstr((char *)msgBuf, "CONTROL_Basic:") != NULL)
+            {
+                // 显示指令内容的时间
+                delay(2500);
+                CONN_ExcuteCMD((char *)msgBuf);
+            }
+            else if (strstr((char *)msgBuf, "Replay:") != NULL)
+            {
+                // 显示指令内容的时间
+                delay(2500);
+                CONN_Replay((char *)msgBuf);
+            }
+        }
+
+        return true;
     }
+    return false;
 }
