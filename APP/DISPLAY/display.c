@@ -139,7 +139,7 @@ void Display_CLS(void)
     memset(displayBuffer, 0, sizeof(displayBuffer));
 }
 
-// 控制显示定时器
+// 控制显示
 void Display_Control(FunctionalState status)
 {
     displayEnable = status;
@@ -261,7 +261,7 @@ void Display_InterruptHandle(void)
     static uint32_t unstableTimeStamp = 0;
 
     // 防抖（不知道有没有抖动，反正打个戳能用上）
-    if (IsTimeOut(lastInterrupt, 10))
+    if (IsTimeOut(lastInterrupt, 2))
     {
         // 记录上次中断时间戳
         lastInterrupt = millis();
@@ -281,7 +281,7 @@ void Display_InterruptHandle(void)
         }
 
         // 稳定数秒后不再调整间距
-        if (!IsTimeOut(unstableTimeStamp, 6000))
+        if (!IsTimeOut(unstableTimeStamp, 5000))
         {
             pixelCycle = currentCycle *                      // 当前总周期的时间 *
                          DisplayCycleToFullCycleProportion / // 显示周期与总周期比例 /
