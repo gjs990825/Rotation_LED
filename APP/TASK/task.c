@@ -4,6 +4,7 @@
 #include "delay.h"
 #include "stdio.h"
 #include "usart.h"
+#include "display.h"
 
 // 指定行显示两条线
 void BasicTask_1(uint8_t line1, uint8_t line2)
@@ -44,8 +45,9 @@ void BasicTask_2(void)
             outPutData |= 1 << j;
 
             // 等待间隔区间写数据以防断线
-            while (!Display_IsInterval());
-            
+            while (!Display_IsInterval())
+                ;
+
             for (uint8_t k = 0; k < (LandscapePixelNumber / 3); k++)
             {
                 Display_WriteARow_Hex(outPutData, k);
@@ -102,33 +104,34 @@ void BasicTask_4(void)
     delay(500);
 }
 
-void Show_ImgData(uint16_t img1[16], uint16_t img2[16], uint16_t img3[16])
+void Show_ImgData(uint16_t *img[16])
 {
     Display_Color(0xFF);
 
     Display_CLS();
 
-    for (uint8_t i = 0; i < 16; i++)
+    for (uint8_t j = 0; j < 3; j++)
     {
-        Display_WriteARow_Hex(img1[i], i + (0 * (16 + 3)));
-        Display_WriteARow_Hex(img2[i], i + (1 * (16 + 3)));
-        Display_WriteARow_Hex(img3[i], i + (2 * (16 + 3)));
+        for (uint8_t i = 0; i < 16; i++)
+        {
+            Display_WriteARow_Hex(img[j][i], (j * (16 + 3)) + i);
+        }
     }
 
     Display_Control(ENABLE);
 }
 
 // 按顺序在120度弧面内同时显示（三个点阵点间隔）接收到的图文信息
-void PromotedTask_1(uint16_t img1[16], uint16_t img2[16], uint16_t img3[16])
+void PromotedTask_1(uint16_t *img[16])
 {
-    Show_ImgData(img1, img2, img3);
+    Show_ImgData(img);
     delay(8000);
 }
 
 // 使图文在显示的同时实现红色绿色橙黄色交替变色显示，变色样式不少于5种
-void PromotedTask_2(uint16_t img1[16], uint16_t img2[16], uint16_t img3[16])
+void PromotedTask_2(uint16_t *img[16])
 {
-    Show_ImgData(img1, img2, img3);
+    Show_ImgData(img);
     for (uint8_t j = 0; j < 3; j++)
     {
         for (uint16_t i = 0; i <= 0xFF; i++)
@@ -138,6 +141,12 @@ void PromotedTask_2(uint16_t img1[16], uint16_t img2[16], uint16_t img3[16])
         }
     }
     Display_Color(0xFF);
+}
+
+// 其它功能
+void PromotedTask_3(void)
+{
+    Clock_Display();
 }
 
 // 显示上电之后的运行时间
@@ -162,7 +171,7 @@ void Clock_Display(void)
 
     USART_CLR_REC();
 
-    while (1)
+    for (;;)
     {
         if (USART_RECEIVED)
         {
@@ -209,45 +218,131 @@ void Clock_Display(void)
     }
 }
 
+#define WaitIntervalIs(sta)                                      \
+    do                                                           \
+    {                                                            \
+        while (Display_IsInterval() != sta)                      \
+        {                                                        \
+            if (USART_RECEIVED || IsTimeOut(startTime, timeout)) \
+                goto END;                                        \
+        }                                                        \
+    } while (0)
+
+#define ENDLABLE()            \
+    END:                      \
+    Display_Control(DISABLE); \
+    Display_CLS();            \
+    return
+
 // 转动的斜线
-void Running_Slashes(void)
+// 串口接收到消息或者运行一段时间后自动退出
+void Running_Slashes(uint32_t timeout)
 {
     Display_Color(0);
     Display_Control(ENABLE);
 
-    while (1)
+    uint32_t startTime = millis();
+
+    for (;;)
     {
         for (uint8_t j = 0; j < 16; j++)
         {
-            while (Display_IsInterval() != true)
-            {
-                if (USART_RECEIVED)
-                    goto END;
-            }
+            WaitIntervalIs(true);
 
             for (uint16_t i = 0; i < LandscapePixelNumber; i++)
             {
                 Display_WriteARow_Hex(1 << (i + j) % 16, i);
             }
 
-            while (Display_IsInterval() != false)
-            {
-                if (USART_RECEIVED)
-                    goto END;
-            }
+            WaitIntervalIs(false);
         }
     }
 
-END:
-
-    Display_Control(DISABLE);
-    Display_CLS();
-    return;
+    ENDLABLE();
 }
 
-// 其它功能
-void PromotedTask_3(void)
+// 输出字幕（未显示区域不会更新图像）
+void Display_OutputSubs(int16_t weight, uint16_t hight, const uint8_t *subs, int16_t offset)
 {
-    Clock_Display();
+    int16_t realPos;
+
+    for (int16_t i = 0; i < weight; i++)
+    {
+        for (uint8_t j = 0; j < hight; j++)
+        {
+            realPos = i + offset;
+            if (i < 0)
+                continue;
+
+            Display_WriteARow_Byte(subs[i + weight * j], (j == 1), realPos);
+        }
+    }
 }
 
+// 循环滚动显示字幕
+void Subs_ScrollDisplay(int16_t weight, uint16_t hight, const uint8_t *subs, uint32_t timeout)
+{
+#define _SUBS_INTERVAL_ 16
+
+    uint32_t startTime = millis();
+    uint16_t aCircle = weight + _SUBS_INTERVAL_;
+
+    // 满足循环显示需要重复的个数
+    uint8_t number = LandscapePixelNumber / aCircle + 1;
+    // 最少需要两个形成图形循环
+    if (number == 1)
+        number = 2;
+
+    Display_Control(ENABLE);
+
+    for (;;)
+    {
+        for (int16_t j = 0; j > -aCircle; j--)
+        {
+            WaitIntervalIs(false);
+
+            for (uint8_t i = 0; i < number; i++)
+            {
+                Display_OutputSubs(weight, hight, subs, j + i * aCircle);
+            }
+
+            WaitIntervalIs(true);
+        }
+    }
+
+    ENDLABLE();
+}
+
+void Video_Play(uint16_t width, uint8_t hight, uint16_t frames, const uint8_t *video, uint32_t timeout)
+{
+    uint32_t startTime = millis();
+
+#define _VIDEO_INTERVAL_ 16
+
+    uint8_t number = LandscapePixelNumber / (width + _VIDEO_INTERVAL_);
+
+    Display_Control(ENABLE);
+
+    for (;;)
+    {
+        for (uint16_t f = 0; f < frames; f++)
+        {
+            WaitIntervalIs(true);
+            for (uint16_t i = 0; i < width; i++)
+            {
+                for (uint16_t j = 0; j < hight; j++)
+                {
+                    for (uint8_t k = 0; k < number; k++)
+                    {
+                        Display_WriteARow_Byte(video[(f * width * hight) + (i + j * width)],
+                                               (j == 1),
+                                               i + k * (width + _VIDEO_INTERVAL_));
+                    }
+                }
+            }
+            WaitIntervalIs(false);
+        }
+    }
+
+    ENDLABLE();
+}

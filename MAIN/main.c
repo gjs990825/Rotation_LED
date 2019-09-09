@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "task.h"
 #include "communication.h"
+#include "chs_character.h"
 
 int main(void)
 {
@@ -30,7 +31,10 @@ int main(void)
     Display_WaitTillStabilized();
 
     // 显示运动的斜线
-    Running_Slashes();
+    Running_Slashes(3000);
+
+    // 显示字幕
+    Subs_ScrollDisplay(392, 2, chs_character, 10000);
 
     // 上次处理串口消息的时间
     uint32_t lastProcess = 0;
@@ -44,7 +48,7 @@ int main(void)
         }
 
         // 数秒内无动作进入计时模式，任意操作退出
-        if (IsTimeOut(lastProcess, 3000))
+        if (IsTimeOut(lastProcess, 2000))
         {
             Clock_Display();
         }

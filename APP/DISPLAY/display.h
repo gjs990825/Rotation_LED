@@ -33,8 +33,6 @@ void Display_CLS(void);
 // 输出
 
 void Display_OutputBuffer(uint16_t x);
-void Display_WriteARow(bool pixel[16], uint16_t x);
-void Display_WriteARow_Hex(uint16_t HEXData, uint16_t x);
 
 // 转换工具
 
@@ -49,6 +47,9 @@ void Display_PrintBuffer(void);
 
 // 外部调用接口
 
+void Display_WriteARow_Byte(uint8_t byte, uint8_t isHighByte, uint16_t x);
+void Display_WriteARow(bool pixel[16], uint16_t x);
+void Display_WriteARow_Hex(uint16_t HEXData, uint16_t x);
 void Display_InterruptHandle(void);
 void Display_WaitTillStabilized(void);
 void Display_UnstableHandle(void);

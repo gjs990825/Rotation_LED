@@ -103,7 +103,7 @@ void LEDArray_Init(void)
     TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
 
     TIM_Cmd(TIM2, ENABLE);
-    LEDArray_Color(0x00);
+    LEDArray_Color(0xFF);
 
     // 红外输入
 

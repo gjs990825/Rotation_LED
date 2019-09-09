@@ -5,6 +5,7 @@
 #include "string.h"
 #include "display.h"
 #include "delay.h"
+#include "cxk.h"
 
 uint16_t img1[16] = {
     0xF000,
@@ -119,11 +120,11 @@ void CONN_Replay(char *str)
     {
         if (id == 1)
         {
-            PromotedTask_1(img1, img2, img3);
+            PromotedTask_1(img);
         }
         else if (id == 2)
         {
-            PromotedTask_2(img1, img2, img3);
+            PromotedTask_2(img);
         }
     }
 }
@@ -144,6 +145,11 @@ bool Check_USARTMessage(void)
         if (strstr((char *)msgBuf, "IMG_DATA_") != NULL)
         {
             CONN_ProcessData((char *)msgBuf);
+        }
+        else if (strstr((char *)msgBuf, "CXK") != NULL)
+        {
+            Subs_ScrollDisplay(112, 2, LitigationWarning, 4000);
+            Video_Play(16, 2, 874, ChickenYouAreSoBeatutiful, 40000);
         }
         else
         {
