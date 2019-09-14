@@ -48,7 +48,7 @@ int main(void)
         }
 
         // 数秒内无动作进入计时模式，任意操作退出
-        if (IsTimeOut(lastProcess, 2000))
+        if (IsTimeOut(lastProcess, 3000))
         {
             Clock_Display();
         }

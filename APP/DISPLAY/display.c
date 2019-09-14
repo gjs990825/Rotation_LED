@@ -25,7 +25,7 @@ fontInfo_t Font_8x16 = {
 // 控制常量↓
 
 // 显示周期占总周期的比例
-const float DisplayCycleToFullCycleProportion = 345.0 / 360.0;
+const float DisplayCycleToFullCycleProportion = 340.0 / 360.0;
 
 // 测量的稳定周期区间
 #define _DISPLAY_TEST_CYCLE_ 255013

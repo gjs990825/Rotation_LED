@@ -148,8 +148,9 @@ bool Check_USARTMessage(void)
         }
         else if (strstr((char *)msgBuf, "CXK") != NULL)
         {
+            // 律师函警告，播放一次视频
             Subs_ScrollDisplay(112, 2, LitigationWarning, 4000);
-            Video_Play(16, 2, 874, ChickenYouAreSoBeatutiful, 40000);
+            Video_Play(16, 2, 874, ChickenYouAreSoBeatutiful, 0);
         }
         else
         {
