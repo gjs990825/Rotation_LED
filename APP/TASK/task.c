@@ -315,7 +315,20 @@ void Subs_ScrollDisplay(int16_t weight, uint16_t hight, const uint8_t *subs, uin
 
 void Video_Play(uint16_t width, uint8_t hight, uint16_t frames, const uint8_t *video, uint32_t timeout)
 {
-    uint32_t startTime = millis();
+    bool whileParam;
+    uint32_t startTime;
+
+    if (timeout == 0)
+    {
+        // 播放一次
+        whileParam = 0;
+        startTime = 0x7FFFFFFF;
+    }
+    else
+    {
+        whileParam = 1;
+        startTime = millis();
+    }
 
 #define _VIDEO_INTERVAL_ 16
 
@@ -323,11 +336,12 @@ void Video_Play(uint16_t width, uint8_t hight, uint16_t frames, const uint8_t *v
 
     Display_Control(ENABLE);
 
-    for (;;)
+    do
     {
         for (uint16_t f = 0; f < frames; f++)
         {
             WaitIntervalIs(true);
+
             for (uint16_t i = 0; i < width; i++)
             {
                 for (uint16_t j = 0; j < hight; j++)
@@ -340,9 +354,10 @@ void Video_Play(uint16_t width, uint8_t hight, uint16_t frames, const uint8_t *v
                     }
                 }
             }
+
             WaitIntervalIs(false);
         }
-    }
+    } while (whileParam);
 
     ENDLABLE();
 }
